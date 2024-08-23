@@ -5,7 +5,9 @@ import { PrismaService } from "src/prisma/prisma.service";
 import * as argon from 'argon2'
 import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from "@prisma/client/runtime/library";
 import { JwtService } from "@nestjs/jwt";
-import {ConfigService} from "@nestjs/config"
+import {ConfigService} from "@nestjs/config";
+import { JwtPayload } from "./types/jwtPayload.type";
+import {Tokens} from './types';
 
 
 @Injectable()
@@ -28,8 +30,9 @@ export class AuthService{
                     createdAt:true
                 }
             })
-            const token = await this.signToken(user.id,user.email)
-            return {user,token};
+            const tokens:Tokens = await this.signToken(user.id,user.email);
+            
+            return {user,tokens};
         }catch(error){
             if(error instanceof PrismaClientKnownRequestError){
                 if(error.code === 'P2002'){
@@ -43,6 +46,8 @@ export class AuthService{
     }
     async signin(dto:AuthDto){
         //Check users data
+        console.log('xui');
+        
         const user = await this.prisma.user.findUnique({
             where: {
                 email:dto.email
@@ -55,19 +60,45 @@ export class AuthService{
         if(!pwMatches){
             throw new ForbiddenException('Credentials incorrect')
         }
-        const token = await this.signToken(user.id,user.email);
-        return {user,token};
+        const tokens:Tokens = await this.signToken(user.id,user.email);
+        
+        return {user,tokens};
     }
-    async signToken(userId:number,email:string):Promise<string>{
+    async signToken(userId:number,email:string):Promise<Tokens>{
 
-        const payload = {
+        const payload:JwtPayload = {
             sub:userId,
-            email
+            email:email
         }
-        const secret = process.env.JWT_SECRET
-        return await this.jwt.signAsync(payload,{
-            expiresIn:'1h',
-            secret:secret
+        const accessSecret = process.env.JWT_SECRET
+        const refreshSecret = process.env.JWT_REFRESH_TOKEN
+        const [accessToken,refreshToken] = await Promise.all([
+            this.jwt.signAsync(payload,{
+                expiresIn:'15m',
+                secret:accessSecret
+            }),
+            this.jwt.signAsync(payload,{
+                expiresIn: '28d',
+                secret:refreshSecret
+            })
+            
+        ]) 
+        return {access_token:accessToken,
+            refresh_token:refreshToken};
+    }
+    async logout(dto:AuthDto){
+
+    }
+    async refreshTokens(userId:number,email:string):Promise<Tokens>{
+        const user = await this.prisma.user.findUnique({
+            where:{
+                id:userId
+            }
         })
+        if(!user) throw new ForbiddenException('Access denied');
+        const eMatches = await argon.verify(user.email,email);
+        if(!eMatches) throw new ForbiddenException('Access Denied');
+        const tokens:Tokens = await this.signToken(user.id,user.email);
+        return tokens;
     }
 }

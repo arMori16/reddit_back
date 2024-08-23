@@ -10,5 +10,7 @@ export class AuthDto{
     @IsNotEmpty()  // Сделаем поле обязательным
     @IsString()
     action:string
+    @IsNotEmpty()
+    @IsString()
     firstName?:string
 }
