@@ -1,28 +1,31 @@
-import { BadRequestException, Body, Controller, Post, Req, Res,Get } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Post, Req, Res,Get, UseGuards, Session } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthDto } from "./dto/auth.dto";
-import { Public } from "@prisma/client/runtime/library";
+import { Public } from "src/common/decorators/public.decorator";
 import { GetCurrentUserId } from "src/common/decorators/get-current-userId.decorator";
 import { GetCurrentUser } from "src/common/decorators/get-current-user.decorator";
 import { JwtPayload } from "./types/jwtPayload.type";
 import { Tokens } from "./types";
+import { AuthGuard } from "@nestjs/passport";
+import { AtGuard } from "src/common/guards/at.guard";
+import { RtGuard } from "src/common/guards";
+import session from "express-session";
 
 
 @Controller('/')
 export class AuthController{
     constructor(private service:AuthService){}
+    @Public()
     @Post('')
-    async handleAuth(@Body() dto:AuthDto){
+    async handleAuth(@Body() dto:AuthDto,
+                    @Session() session:string){
         try {
             if (dto.action === 'signup') {
-                return await this.service.signup(dto);
+                return await this.service.signup(dto,session);
             }
             if (dto.action === 'login') {
                 console.log('xui2');
-                return await this.service.signin(dto);
-            }
-            if(dto.action === 'logout'){
-                return await this.service.logout(dto)
+                return await this.service.signin(dto,session);
             }
             throw new BadRequestException('Invalid action');
         } catch (error) {
@@ -30,11 +33,30 @@ export class AuthController{
             throw new BadRequestException('Something went wrong');
         }
     }
+    @UseGuards(AtGuard)
+    @Post('logout')
+    async logout(@GetCurrentUserId() userId:number):Promise<boolean>{
+        if (!userId) {
+            throw new BadRequestException('User ID not found');
+        }
+        return this.service.logout(userId);
+    }
+    @Public()
+    @UseGuards(RtGuard)
     @Post('refresh')
     async refreshTokens(@GetCurrentUserId() userId:number,
-                        @GetCurrentUser() email:string):Promise<Tokens>{
-                            return this.service.refreshTokens(userId,email);
+                        @Session() session:any,
+                        @GetCurrentUser('refreshToken') refreshToken:string):Promise<Tokens>{
+                            if(!userId){throw new BadRequestException('User ID not found');}
+                            return this.service.refreshTokens(userId,refreshToken,session);
 
     } 
-    
+    @UseGuards(AtGuard)
+    @Get('getUserId')
+    async getUserId(@GetCurrentUserId() userId:number):Promise<number>{
+        if (!userId) {
+            throw new BadRequestException('User ID not found');
+        }
+        return this.service.getUserId(userId);
+    }
 }

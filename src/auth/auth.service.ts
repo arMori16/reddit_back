@@ -13,7 +13,7 @@ import {Tokens} from './types';
 @Injectable()
 export class AuthService{
     constructor(private prisma:PrismaService,private jwt:JwtService,private config:ConfigService){}
-    async signup(dto:AuthDto){
+    async signup(dto:AuthDto,session:any){
         //hash the password
         const hash = await argon.hash(dto.password)
         try{
@@ -30,8 +30,8 @@ export class AuthService{
                     createdAt:true
                 }
             })
-            const tokens:Tokens = await this.signToken(user.id,user.email);
-            
+            const tokens:Tokens = await this.signToken(user.id,user.email,session);
+            await this.updateRtHash(user.id,tokens.refresh_token);
             return {user,tokens};
         }catch(error){
             if(error instanceof PrismaClientKnownRequestError){
@@ -44,7 +44,7 @@ export class AuthService{
         }
         //if it incorrect we decline it 
     }
-    async signin(dto:AuthDto){
+    async signin(dto:AuthDto,session:any){
         //Check users data
         console.log('xui');
         
@@ -60,11 +60,12 @@ export class AuthService{
         if(!pwMatches){
             throw new ForbiddenException('Credentials incorrect')
         }
-        const tokens:Tokens = await this.signToken(user.id,user.email);
+        const tokens:Tokens = await this.signToken(user.id,user.email,session);
+        await this.updateRtHash(user.id,tokens.refresh_token);
         
         return {user,tokens};
     }
-    async signToken(userId:number,email:string):Promise<Tokens>{
+    async signToken(userId:number,email:string,session:any):Promise<Tokens>{
 
         const payload:JwtPayload = {
             sub:userId,
@@ -83,22 +84,76 @@ export class AuthService{
             })
             
         ]) 
+        /* const oldRefreshToken = localStorage.getItem('refreshToken');
+        if(oldRefreshToken !== null){
+            return {access_token:accessToken,
+                    refresh_token:oldRefreshToken}
+        } */
+        session.accessToken = accessToken;
+        session.refreshToken = refreshToken;
         return {access_token:accessToken,
             refresh_token:refreshToken};
     }
-    async logout(dto:AuthDto){
-
+    async logout(userId:number):Promise<boolean>{
+        await this.prisma.user.updateMany({
+            where:{
+                id:userId,
+                hashedRT:{
+                    not:null,
+                }
+            },
+            data:{
+                hashedRT:null
+            }
+        })
+        return true;
     }
-    async refreshTokens(userId:number,email:string):Promise<Tokens>{
+    async refreshTokens(userId:number,refreshToken:string,session:any):Promise<Tokens>{
+        const user = await this.prisma.user.findUnique({
+            where:{
+                id:userId,
+            },
+            select:{
+                id:true,
+                email:true,
+                hashedRT:true
+            }
+        })
+        if(!user || !refreshToken) throw new ForbiddenException('Access denied');
+        console.log('getting RT');
+        const test = await argon.hash(refreshToken)
+        console.log(test);
+        console.log(user.hashedRT);
+        
+        const rtMatches = await argon.verify(user.hashedRT,refreshToken);
+        console.log('RT taken');
+        if(!rtMatches) throw new ForbiddenException('Access Denied ++++');
+        const tokens:Tokens = await this.signToken(user.id,user.email,session);
+        await this.updateRtHash(userId,tokens.refresh_token);
+        return tokens;
+    }
+    async updateRtHash(userId: number, rt: string): Promise<void> {
+        const hash = await argon.hash(rt);
+        await this.prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data:{
+           hashedRT:hash
+          }
+        });
+      }
+    async getUserId(userId:number):Promise<number>{
         const user = await this.prisma.user.findUnique({
             where:{
                 id:userId
+            },
+            select:{
+                id:true
             }
         })
-        if(!user) throw new ForbiddenException('Access denied');
-        const eMatches = await argon.verify(user.email,email);
-        if(!eMatches) throw new ForbiddenException('Access Denied');
-        const tokens:Tokens = await this.signToken(user.id,user.email);
-        return tokens;
+        console.log(user.id);
+        return user.id;
+        
     }
 }
