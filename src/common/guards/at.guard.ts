@@ -30,6 +30,7 @@ export class  AtGuard extends AuthGuard('jwt'){
             console.error('Error in canActivate:', error);
             throw error; // Повторно выбрасываем ошибку, чтобы она была обработана выше
           }
+          
         /* return super.canActivate(context); */
     }
 }
