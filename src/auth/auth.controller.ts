@@ -17,15 +17,14 @@ export class AuthController{
     constructor(private service:AuthService){}
     @Public()
     @Post('')
-    async handleAuth(@Body() dto:AuthDto,
-                    @Session() session:string){
+    async handleAuth(@Body() dto:AuthDto){
         try {
             if (dto.action === 'signup') {
-                return await this.service.signup(dto,session);
+                return await this.service.signup(dto);
             }
             if (dto.action === 'login') {
                 console.log('xui2');
-                return await this.service.signin(dto,session);
+                return await this.service.signin(dto);
             }
             throw new BadRequestException('Invalid action');
         } catch (error) {
@@ -45,10 +44,9 @@ export class AuthController{
     @UseGuards(RtGuard)
     @Post('refresh')
     async refreshTokens(@GetCurrentUserId() userId:number,
-                        @Session() session:any,
                         @GetCurrentUser('refreshToken') refreshToken:string):Promise<Tokens>{
                             if(!userId){throw new BadRequestException('User ID not found');}
-                            return this.service.refreshTokens(userId,refreshToken,session);
+                            return this.service.refreshTokens(userId,refreshToken);
 
     } 
     @UseGuards(AtGuard)
@@ -59,4 +57,10 @@ export class AuthController{
         }
         return this.service.getUserId(userId);
     }
+
+    /* @UseGuards(AtGuard)
+    @Get('test')
+    async getTokens(@Body() req:Request){
+        return this.service.
+    } */
 }

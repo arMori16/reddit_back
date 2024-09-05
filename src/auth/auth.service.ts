@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 import { AuthDto } from "./dto/auth.dto";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -13,15 +13,23 @@ import {Tokens} from './types';
 @Injectable()
 export class AuthService{
     constructor(private prisma:PrismaService,private jwt:JwtService,private config:ConfigService){}
-    async signup(dto:AuthDto,session:any){
+    async signup(dto:AuthDto){
+        const oldUser = await this.prisma.user.findUnique({
+            where:{
+                email:dto.email
+            }
+        })
+        if(oldUser) throw new BadRequestException('This user is already exist')
+
+
         //hash the password
         const hash = await argon.hash(dto.password)
         try{
             const user = await this.prisma.user.create({
                 data:{
                     email:dto.email,
-                    hash,
-                    firstName:dto.firstName
+                    hash:hash,
+                    firstName:dto.firstName,
                 },
                 select:{
                     id:true,
@@ -30,7 +38,7 @@ export class AuthService{
                     createdAt:true
                 }
             })
-            const tokens:Tokens = await this.signToken(user.id,user.email,session);
+            const tokens:Tokens = await this.signToken(user.id,user.email);
             await this.updateRtHash(user.id,tokens.refresh_token);
             return {user,tokens};
         }catch(error){
@@ -44,7 +52,7 @@ export class AuthService{
         }
         //if it incorrect we decline it 
     }
-    async signin(dto:AuthDto,session:any){
+    async signin(dto:AuthDto){
         //Check users data
         console.log('xui');
         
@@ -60,12 +68,12 @@ export class AuthService{
         if(!pwMatches){
             throw new ForbiddenException('Credentials incorrect')
         }
-        const tokens:Tokens = await this.signToken(user.id,user.email,session);
+        const tokens:Tokens = await this.signToken(user.id,user.email);
         await this.updateRtHash(user.id,tokens.refresh_token);
         
         return {user,tokens};
     }
-    async signToken(userId:number,email:string,session:any):Promise<Tokens>{
+    private async signToken(userId:number,email:string):Promise<Tokens>{
 
         const payload:JwtPayload = {
             sub:userId,
@@ -89,8 +97,7 @@ export class AuthService{
             return {access_token:accessToken,
                     refresh_token:oldRefreshToken}
         } */
-        session.accessToken = accessToken;
-        session.refreshToken = refreshToken;
+        
         return {access_token:accessToken,
             refresh_token:refreshToken};
     }
@@ -108,7 +115,7 @@ export class AuthService{
         })
         return true;
     }
-    async refreshTokens(userId:number,refreshToken:string,session:any):Promise<Tokens>{
+    async refreshTokens(userId:number,refreshToken:string):Promise<Tokens>{
         const user = await this.prisma.user.findUnique({
             where:{
                 id:userId,
@@ -128,7 +135,7 @@ export class AuthService{
         const rtMatches = await argon.verify(user.hashedRT,refreshToken);
         console.log('RT taken');
         if(!rtMatches) throw new ForbiddenException('Access Denied ++++');
-        const tokens:Tokens = await this.signToken(user.id,user.email,session);
+        const tokens:Tokens = await this.signToken(user.id,user.email);
         await this.updateRtHash(userId,tokens.refresh_token);
         return tokens;
     }
@@ -156,4 +163,8 @@ export class AuthService{
         return user.id;
         
     }
+
+    /* async getTokens(data:any){
+
+    } */
 }

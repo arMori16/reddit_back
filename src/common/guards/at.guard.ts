@@ -11,7 +11,7 @@ export class  AtGuard extends AuthGuard('jwt'){
         super();
     }
 
-    canActivate(context: ExecutionContext) { 
+    async canActivate(context: ExecutionContext):Promise<boolean> { 
         const isPublic = this.reflector.getAllAndOverride('isPublic',[
             context.getHandler(),
             context.getClass()
@@ -22,7 +22,14 @@ export class  AtGuard extends AuthGuard('jwt'){
         const request = context.switchToHttp().getRequest();
         console.log('Authorization req: ',request.headers.authorization);
         
-
-        return super.canActivate(context);
+        try {
+            const canActivateResult = await super.canActivate(context) as boolean;
+            console.log('Can activate result:', canActivateResult);
+            return canActivateResult;
+          } catch (error) {
+            console.error('Error in canActivate:', error);
+            throw error; // Повторно выбрасываем ошибку, чтобы она была обработана выше
+          }
+        /* return super.canActivate(context); */
     }
 }
