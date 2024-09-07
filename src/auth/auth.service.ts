@@ -53,9 +53,6 @@ export class AuthService{
         //if it incorrect we decline it 
     }
     async signin(dto:AuthDto){
-        //Check users data
-        console.log('xui');
-        
         const user = await this.prisma.user.findUnique({
             where: {
                 email:dto.email
@@ -72,6 +69,20 @@ export class AuthService{
         await this.updateRtHash(user.id,tokens.refresh_token);
         
         return {user,tokens};
+    }
+    async logout(userId:number):Promise<boolean>{
+        await this.prisma.user.updateMany({
+            where:{
+                id:userId,
+                hashedRT:{
+                    not:null,
+                }
+            },
+            data:{
+                hashedRT:null
+            }
+        })
+        return true;
     }
     private async signToken(userId:number,email:string):Promise<Tokens>{
 
@@ -92,28 +103,9 @@ export class AuthService{
             })
             
         ]) 
-        /* const oldRefreshToken = localStorage.getItem('refreshToken');
-        if(oldRefreshToken !== null){
-            return {access_token:accessToken,
-                    refresh_token:oldRefreshToken}
-        } */
         
         return {access_token:accessToken,
             refresh_token:refreshToken};
-    }
-    async logout(userId:number):Promise<boolean>{
-        await this.prisma.user.updateMany({
-            where:{
-                id:userId,
-                hashedRT:{
-                    not:null,
-                }
-            },
-            data:{
-                hashedRT:null
-            }
-        })
-        return true;
     }
     async refreshTokens(userId:number,refreshToken:string):Promise<Tokens>{
         const user = await this.prisma.user.findUnique({

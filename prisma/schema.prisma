@@ -27,3 +27,16 @@ model User{
   hashedRT String?
   @@map("users")
 }
+
+model InfoSeries{
+  SeriesName String @id 
+  Rate Int
+  Status String
+  Type String
+  ReleaseYear String
+  Genre String[]
+  Studio String[]
+  AmountOfEpisode Int
+  VoiceActing String[]
+  VideoSource String
+}

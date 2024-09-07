@@ -8,9 +8,10 @@ import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './common/guards';
 import { CookieMiddleware } from './auth/strategy/cookies.middleware';
 import { JwtService } from '@nestjs/jwt';
+import { SeriesInfoModule } from './seriesInfo/seriesInfo.module';
 
 @Module({
-  imports: [AuthModule,PrismaModule],
+  imports: [AuthModule,PrismaModule,SeriesInfoModule],
   controllers: [AppController],
   providers: [AppService,{
     provide:APP_GUARD,
