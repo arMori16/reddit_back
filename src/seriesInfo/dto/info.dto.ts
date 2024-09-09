@@ -5,6 +5,10 @@ export class InfoDto{
     @IsNotEmpty()
     SeriesName:string 
     @IsNotEmpty()
+    Description:string
+    @IsNotEmpty()
+    SeriesViewName:string
+    @IsNotEmpty()
     @IsNumber()
     @Type(() => Number)
     Rate:number

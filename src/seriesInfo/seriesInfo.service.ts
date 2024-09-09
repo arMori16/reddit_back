@@ -27,6 +27,8 @@ export class SeriesInfoService{
             const info = await this.prisma.infoSeries.create({
                 data:{
                     SeriesName:dto.SeriesName,
+                    SeriesViewName:dto.SeriesViewName,
+                    Description:dto.Description,
                     Rate:dto.Rate,
                     Status:dto.Status,
                     Type:dto.Type,
@@ -39,6 +41,8 @@ export class SeriesInfoService{
                 },
                 select:{
                     SeriesName:true,
+                    Description:true,
+                    SeriesViewName:true,
                     Rate:true,
                     Status:true,
                     Type:true,
@@ -56,6 +60,7 @@ export class SeriesInfoService{
             
             return info;
         }catch(err){
+            
             console.log(err);
             return false;
         }
@@ -69,6 +74,8 @@ export class SeriesInfoService{
                 },
                 select:{
                     SeriesName:true,
+                    SeriesViewName:true,
+                    Description:true,
                     Rate:true,
                     Status:true,
                     Type:true,
@@ -85,6 +92,30 @@ export class SeriesInfoService{
         }catch(err){
             console.log(err);
             return false;
+        }
+    }
+    async deleteIs(){
+        const deleteIs =  this.prisma.infoSeries.deleteMany({});
+        console.log(deleteIs);
+        return deleteIs;
+    }
+    async refreshInfo(seriesName:any){
+        try{
+            const res = await this.prisma.infoSeries.update({
+                where:{
+                    SeriesName:seriesName.SeriesName
+                },
+                data:{
+                    VideoSource:seriesName.VideoSource
+                },
+                select:{
+                    VideoSource:true
+                }
+            })
+            return res.VideoSource;
+        }catch(err){
+            console.log(err);
+            
         }
     }
 }
