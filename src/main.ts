@@ -8,7 +8,9 @@ import { CookieMiddleware } from './auth/strategy/cookies.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  app.enableCors({
+    origin:true
+  });
   app.useGlobalPipes(new ValidationPipe({
     whitelist:true
     }

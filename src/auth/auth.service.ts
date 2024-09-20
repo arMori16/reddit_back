@@ -120,9 +120,11 @@ export class AuthService{
         })
         if(!user || !refreshToken) throw new ForbiddenException('Access denied');
         console.log('getting RT');
-        const test = await argon.hash(refreshToken)
-        console.log(test);
-        console.log(user.hashedRT);
+        /* const test = await argon.hash(refreshToken)
+        console.log('ITS USERHAEDSASA',user.hashedRT);
+        console.log('ITS TEST',test); */
+        
+        
         
         const rtMatches = await argon.verify(user.hashedRT,refreshToken);
         console.log('RT taken');

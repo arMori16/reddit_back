@@ -41,6 +41,8 @@ export class AuthController{
         return this.service.logout(userId);
     }
     @Public()
+    /* $argon2id$v=19$m=65536,t=3,p=4$fjJYd7B+4rMT55+DHserDg$3TyFEWtmrDXhKUnhsPYjAQxyv24LLIefyme7DRk2N08
+         */
     @UseGuards(RtGuard)
     @Post('refresh')
     async refreshTokens(@GetCurrentUserId() userId:number,
