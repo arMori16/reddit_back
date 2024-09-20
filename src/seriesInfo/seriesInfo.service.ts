@@ -132,7 +132,7 @@ export class SeriesInfoService{
 export class VideoFormatterService{
     async videoUpload(videoUrl:string,seriesName:string){
         try{
-            const tempDir = path.join(__dirname, '..', '..', 'video',`${seriesName}`);
+            const tempDir = path.join(__dirname, '..', '..', 'src/video',`${seriesName}`);
             const inputFile = videoUrl;
             console.log('VIDEOURL: ',videoUrl);
             console.log(seriesName);
@@ -176,7 +176,7 @@ export class VideoFormatterService{
                 console.log('HIEGHT: ',height);
                 console.log('SeriesName: ',seriesName);
                 
-                const outputDir = path.join(__dirname, '..', '..', 'video', seriesName, `${height}p`);
+                const outputDir = path.join(__dirname, '..', '..', 'src/video', seriesName, `${height}p`);
 
                 console.log('OUTPUT DIR SERIES: ',outputDir);
                 
@@ -280,7 +280,7 @@ export class VideoFormatterService{
         console.log('EXISTS FILE!',dirSeriesName);
         try{
             if(isExists){
-                const check = path.join(`${__dirname},'..','..',video/${seriesName}/${quality}/${quality}.mp4`)
+                const check = path.join(__dirname,'..','..',`src/video/${seriesName}/${quality}/${quality}.mp4`)
                 
                 const checked = await fs.stat(check).then(() => true).catch(() => false);;
                 if(checked){
