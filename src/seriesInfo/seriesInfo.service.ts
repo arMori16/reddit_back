@@ -194,10 +194,14 @@ export class VideoFormatterService{
                 };
                 ffmpeg(inputPath)
                 .outputOptions([
-                    `-vf scale=${resolution}`, // Устанавливаем разрешение видео
-                    '-codec:v libx264',       // Видео кодек H.264
-                    '-codec:a aac',           // Аудио кодек AAC
-                    '-start_number 0',
+                    `-vf scale=${resolution}`,        // Устанавливаем разрешение видео
+                    '-c:v libx264',                   // Видео кодек H.264
+                    '-c:a aac',                       // Аудио кодек AAC
+                    '-movflags +faststart',           // Оптимизация MP4 для потокового воспроизведения
+                    '-preset veryfast',               // Пресет для быстрого кодирования
+                    '-profile:v baseline',            // Использование совместимого профиля H.264
+                    '-level 3.0',                     // Уровень для совместимости с браузерами
+                    '-pix_fmt yuv420p'
                 ])
                 .output(outputPath)
                 .on('start', (commandLine) => {
@@ -276,6 +280,8 @@ export class VideoFormatterService{
     }
     async getRoute(seriesName:string,quality:string){
         const dirSeriesName = `C:/Users/arMori/Desktop/RedditClone/reddit_back/src/video/${seriesName}`;
+        console.log('ITS QUALOITY: ',quality);
+        
         const isExists = await fs.stat(dirSeriesName).then(() => true).catch(() => false);
         console.log('EXISTS FILE!',dirSeriesName);
         try{

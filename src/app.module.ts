@@ -9,10 +9,9 @@ import { AtGuard } from './common/guards';
 import { CookieMiddleware } from './auth/strategy/cookies.middleware';
 import { JwtService } from '@nestjs/jwt';
 import { SeriesInfoModule } from './seriesInfo/seriesInfo.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+
+import * as path from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import path, { join } from 'path';
 
 @Module({
   imports: [AuthModule,PrismaModule,SeriesInfoModule,

@@ -63,6 +63,16 @@ export class SeriesInfoController{
     async refreshInfo(@Body() seriesName:any){
         return this.service.refreshInfo(seriesName)
     }
+    @Public()
+    @Get(':filename/:quality')
+    async getVideo(@Param('filename') filename:string,@Param('quality') quality:string,@Res() res:Response){
+        const file = path.join(__dirname,'..','..',`src/video/${filename}/${quality}/${quality}.mp4`);
+        if (fsSync.existsSync(file)) {
+            return res.sendFile(file);
+          } else {
+            return res.status(404).send('File not found');
+          }
+    }
 }
 
 
@@ -118,7 +128,7 @@ export class VideoFormatter{
             console.log('IS FULLPUTH: ',fullPath);
             
             const videoSize = fsSync.statSync(fullPath).size;
-            const start = Number(range.replace(/\D/g,""));
+            const start = Number(range.replace(/\D/g, ''));
             const end = Math.min(start + CHUNK_SIZE,videoSize - 1); // 1 MB block
 
             const contentLength = end - start + 1;
