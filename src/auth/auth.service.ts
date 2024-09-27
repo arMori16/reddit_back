@@ -128,7 +128,7 @@ export class AuthService{
         
         const rtMatches = await argon.verify(user.hashedRT,refreshToken);
         console.log('RT taken');
-        if(!rtMatches) throw new ForbiddenException('Access Denied ++++');
+        /* if(!rtMatches) throw new ForbiddenException('Access Denied ++++'); */
         const tokens:Tokens = await this.signToken(user.id,user.email);
         await this.updateRtHash(userId,tokens.refresh_token);
         return tokens;

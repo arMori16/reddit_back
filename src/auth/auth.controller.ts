@@ -23,13 +23,12 @@ export class AuthController{
                 return await this.service.signup(dto);
             }
             if (dto.action === 'login') {
-                console.log('xui2');
                 return await this.service.signin(dto);
             }
             throw new BadRequestException('Invalid action');
         } catch (error) {
             console.error('Error in AuthController:', error);  // Логируем ошибку
-            throw new BadRequestException('Something went wrong');
+            throw new BadRequestException('email or password is incorrect!');
         }
     }
     @UseGuards(AtGuard)
