@@ -15,8 +15,6 @@ export class SeriesInfoController{
     @Public()
     @Get('/item')
     async getInfo(@Query() query:SeriesName){
-        
-        
         return await this.service.getInfo(query)
     }
     @Public()
@@ -82,10 +80,11 @@ export class VideoFormatter{
     @Public()
     @Post()
     async uploadVideo(@Body('videoUrl') videoUrl:string,
+                      @Body('numOfEpisode') numOfEpisode:number,
                       @Body('seriesName') seriesName:string,
                       @Res() res:Response){
     try {
-        const result = await this.service.videoUpload(videoUrl,seriesName);
+        const result = await this.service.videoUpload(videoUrl,seriesName,numOfEpisode);
          // Передаем URL на обработку
         return res.json(result);
         } catch (err) {
@@ -147,10 +146,11 @@ export class VideoFormatter{
         }
     }
     @Public()
-    @Get(':seriesName/:resolution/:segmentName')
+    @Get(':seriesName-:episode/:resolution/:segmentName')
     getSegment(
       @Res() res: Response,
       @Param('seriesName') seriesName: string,
+      @Param('episode') episode: number,
       @Param('resolution') resolution: string,
       @Param('segmentName') segmentName: string,
     ) {

@@ -130,21 +130,24 @@ export class SeriesInfoService{
     }
 }
 export class VideoFormatterService{
-    async videoUpload(videoUrl:string,seriesName:string){
+    async videoUpload(videoUrl:string,seriesName:string,numOfEpisode:number){
         try{
-            const tempDir = path.join(__dirname, '..', '..', 'src/video',`${seriesName}`);
+            const tempDir = path.join(__dirname, '..', '..', 'src/video',`${seriesName}-${numOfEpisode}`);
             const inputFile = videoUrl;
             console.log('VIDEOURL: ',videoUrl);
             console.log(seriesName);
             
             const outputFiles = [];
             
-            await this.createDirectories(tempDir);        
-            const file720p = await this.convertVideo(inputFile, '1280x720', '720p.mp4',seriesName);
+            await this.createDirectories(tempDir);   
+            const file1080p = await this.convertVideo(inputFile, '1920x1080', '1080p.mp4', seriesName,numOfEpisode);
+            console.log('1080p file converted: ', file1080p);
+            outputFiles.push(file1080p);     
+            const file720p = await this.convertVideo(inputFile, '1280x720', '720p.mp4',seriesName,numOfEpisode);
             console.log('720p file converted: ', file720p);
             outputFiles.push(file720p);
 
-            const file480p = await this.convertVideo(inputFile, '854x480', '480p.mp4',seriesName);
+            const file480p = await this.convertVideo(inputFile, '854x480', '480p.mp4',seriesName,numOfEpisode);
             console.log('480p file converted: ', file480p);
             outputFiles.push(file480p);
 
@@ -168,7 +171,7 @@ export class VideoFormatterService{
             });
         });
     } */
-    private convertVideo(inputPath:string,resolution:string,outputFileName:string,seriesName:string):Promise<string>{
+    private convertVideo(inputPath:string,resolution:string,outputFileName:string,seriesName:string,numOfEpisode:number):Promise<string>{
         return new Promise(async(resolve,reject)=>{
             try{
 
@@ -176,7 +179,7 @@ export class VideoFormatterService{
                 console.log('HIEGHT: ',height);
                 console.log('SeriesName: ',seriesName);
                 
-                const outputDir = path.join(__dirname, '..', '..', 'src/video', seriesName, `${height}p`);
+                const outputDir = path.join(__dirname, '..', '..', 'src/video', `${seriesName}-${numOfEpisode}`, `${height}p`);
 
                 console.log('OUTPUT DIR SERIES: ',outputDir);
                 
@@ -231,8 +234,14 @@ export class VideoFormatterService{
     }
     private async createDirectories(temp:string){
         try{
+            const dir1080p = `${temp}/1080p`;
             const dir720p = `${temp}/720p`;
             const dir480p = `${temp}/480p`;
+            await fs.mkdir(dir1080p, { recursive: true }).catch((err) => {
+                console.error(`Error creating directory ${dir1080p}:`, err);
+              });
+              console.log('Папка 1080p создана');
+
             await fs.mkdir(dir720p, { recursive: true }).catch((err) => {
                 console.error(`Error creating directory ${dir720p}:`, err);
               });
