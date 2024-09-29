@@ -128,6 +128,9 @@ export class SeriesInfoService{
             
         }
     }
+    async getAmountOfSeries(){
+        return await this.prisma.infoSeries.count();
+    }
 }
 export class VideoFormatterService{
     async videoUpload(videoUrl:string,seriesName:string,numOfEpisode:number){

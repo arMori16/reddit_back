@@ -13,6 +13,29 @@ import { FileInterceptor } from "@nestjs/platform-express";
 export class SeriesInfoController{
     constructor(private service:SeriesInfoService){}
     @Public()
+    @Get('/getAmountOfSeries')
+    async getAmountOfSeries(){
+        return this.service.getAmountOfSeries();
+    }
+    @Public()
+    @Get('/:getImage')
+    async getImage(@Param('getImage') getImage:string,@Res() res:Response){
+        try{
+            const pathImage = path.join(__dirname,'..','..',`public/images/${getImage}.jpg`);
+            /* console.log('PATH IMAGE: ',pathImage);
+            
+            const files = await fs.readdir(pathImage);
+            const images = await files.map(file=>path.join(pathImage,file)); */
+            res.sendFile(pathImage);
+        }
+        catch(err){
+            console.error('Error when tried to read');
+            return res.status(500).json({error:'Cannot connect to the lis of images'})
+        }
+
+    }
+
+    @Public()
     @Get('/item')
     async getInfo(@Query() query:SeriesName){
         return await this.service.getInfo(query)
