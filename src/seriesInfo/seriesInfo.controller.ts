@@ -18,14 +18,38 @@ export class SeriesInfoController{
         return this.service.getAmountOfSeries();
     }
     @Public()
-    @Get('/:getImage')
+    @Get('/getCatalog')
+    async getCatalog(@Res() res:Response){
+        const firstPage = await this.service.getFirstPage();
+        console.log('FIrst page: ',firstPage);
+        
+        res.status(200).json(firstPage);
+    }
+
+    @Public()
+    @Get('/images/:getImage')
     async getImage(@Param('getImage') getImage:string,@Res() res:Response){
         try{
-            const pathImage = path.join(__dirname,'..','..',`public/images/${getImage}.jpg`);
+            const extensions = ['jpg', 'png', 'jpeg', 'webp'];
+            let pathImage = ''; // Инициализируем pathImage пустой строкой
+            const basePath = path.join(__dirname, '..', '..', `public/images/${getImage}`);
+
+            for (const ext of extensions) {
+                const potentialPath = `${basePath}.${ext}`; // Используем текущее расширение
+                try {
+                    await fs.access(potentialPath); // Проверяем наличие файла
+                    pathImage = potentialPath; // Устанавливаем путь к найденному изображению
+                    break; // Как только нашли файл, выходим из цикла
+                } catch (err) {
+                    console.error(`File not found: ${potentialPath}`); // Сообщаем, что файл не найден
+                }
+            }
             /* console.log('PATH IMAGE: ',pathImage);
             
             const files = await fs.readdir(pathImage);
             const images = await files.map(file=>path.join(pathImage,file)); */
+            console.log('PATH IMAGE: ',pathImage);
+            
             res.sendFile(pathImage);
         }
         catch(err){
@@ -38,6 +62,8 @@ export class SeriesInfoController{
     @Public()
     @Get('/item')
     async getInfo(@Query() query:SeriesName){
+        console.log('SERIESNAME: ',query);
+        
         return await this.service.getInfo(query)
     }
     @Public()

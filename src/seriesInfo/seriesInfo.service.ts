@@ -84,6 +84,8 @@ export class SeriesInfoService{
                 },
                 select:{
                     SeriesName:true,
+                    createdAt:true,
+                    updatedAt:true,
                     SeriesViewName:true,
                     Description:true,
                     Rate:true,
@@ -100,10 +102,26 @@ export class SeriesInfoService{
             })
             return info;
         }catch(err){
-            console.log(err);
+            console.error(err);
             return false;
         }
     }
+
+    async getFirstPage(){
+        try{
+            const firstPage = await this.prisma.infoSeries.findMany({
+                take:15,
+                orderBy:{
+                    createdAt:'desc'
+                }
+            })
+            return firstPage;
+        }catch(err){
+            console.error('Error,when trying to getFirstPage');
+        }
+        
+    }
+
     async deleteIs(){
         const deleteIs =  this.prisma.infoSeries.deleteMany({});
         console.log(deleteIs);

@@ -30,6 +30,8 @@ model User{
 
 model InfoSeries{
   SeriesName String @id 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   SeriesViewName String
   Description String
   Rate Int
