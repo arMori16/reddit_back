@@ -30,27 +30,31 @@ export class SeriesInfoController{
     @Get('/images/:getImage')
     async getImage(@Param('getImage') getImage:string,@Res() res:Response){
         try{
-            const extensions = ['jpg', 'png', 'jpeg', 'webp'];
+            const extensions = ['jpg', 'png', 'jpeg', 'webp','avif'];
             let pathImage = ''; // Инициализируем pathImage пустой строкой
             const basePath = path.join(__dirname, '..', '..', `public/images/${getImage}`);
-
+            const extname = path.extname(getImage);
+            console.log('Extname: ',extname);
+            
+            if (extname) {
+                console.log('OITS HERE!');
+                
+                // Если расширение уже есть, отправляем файл
+                await fs.access(basePath); // Проверяем наличие файла
+                return res.sendFile(basePath); // Возвращаем файл
+            }
             for (const ext of extensions) {
                 const potentialPath = `${basePath}.${ext}`; // Используем текущее расширение
                 try {
                     await fs.access(potentialPath); // Проверяем наличие файла
-                    pathImage = potentialPath; // Устанавливаем путь к найденному изображению
-                    break; // Как только нашли файл, выходим из цикла
+                    return res.sendFile(potentialPath);
+
                 } catch (err) {
                     console.error(`File not found: ${potentialPath}`); // Сообщаем, что файл не найден
                 }
             }
-            /* console.log('PATH IMAGE: ',pathImage);
-            
-            const files = await fs.readdir(pathImage);
-            const images = await files.map(file=>path.join(pathImage,file)); */
             console.log('PATH IMAGE: ',pathImage);
-            
-            res.sendFile(pathImage);
+            return res.status(404).send('Image not found');
         }
         catch(err){
             console.error('Error when tried to read');
