@@ -9,13 +9,19 @@ import { AtGuard } from './common/guards';
 import { CookieMiddleware } from './auth/strategy/cookies.middleware';
 import { JwtService } from '@nestjs/jwt';
 import { SeriesInfoModule } from './seriesInfo/seriesInfo.module';
-
-import * as path from 'path';
-import { ServeStaticModule } from '@nestjs/serve-static';
+import { MailModule } from './mail/mail.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
-  imports: [AuthModule,PrismaModule,SeriesInfoModule,
-      SeriesInfoModule,],
+  imports: [AuthModule,PrismaModule,SeriesInfoModule,MailModule,MailerModule.forRoot({
+    transport:'smtps://barasekson67@gmail.com:bodazopa2020@smpt.domain.com',
+    defaults:{
+      from:'"Mori🍃" <barasekson67@gmail.com>'
+    },
+    template:{
+      
+    }
+  })],
   controllers: [AppController],
   providers: [AppService,{
     provide:APP_GUARD,
