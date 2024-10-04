@@ -1,4 +1,4 @@
-import mjml2html from 'mjml'
+import mjml2html from 'mjml';
 
 const generateEmail = (code:string)=>{
     const mjmlTemplate = `
@@ -10,13 +10,11 @@ const generateEmail = (code:string)=>{
             Ваш код верификации
             </mj-text>
             <mj-text>
-            Ваш код: ${code}
+            Ваш код: {{code}}
             </mj-text>
         </mj-column>
         </mj-section>
     </mj-body>
     </mjml>
     `
-    const {html} = mjml2html(mjmlTemplate)
-    return html;
 }
