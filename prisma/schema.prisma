@@ -26,6 +26,8 @@ model User{
   hash String 
   hashedRT String?
   @@map("users")
+
+  comments Comments[] @relation("UserComments")
 }
 
 model InfoSeries{
@@ -43,4 +45,21 @@ model InfoSeries{
   AmountOfEpisode Int
   VoiceActing String[]
   VideoSource String
+
+  comments Comments[] @relation("SeriesComments")
+}
+
+model Comments{
+  Id Int @id @default(autoincrement())
+  SeriesName String 
+  ParentId Int?
+  UserId Int
+  CommentText String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  series InfoSeries? @relation("SeriesComments",fields: [SeriesName],references: [SeriesName],onDelete: Cascade)
+  parent Comments? @relation("CommentReplies",fields: [ParentId],references: [Id])
+  replies Comments[] @relation("CommentReplies")
+  user User? @relation("UserComments",fields: [UserId],references: [id],onDelete: Cascade)
 }

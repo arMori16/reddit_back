@@ -32,7 +32,7 @@ export class SeriesInfoController{
         try{
             const extensions = ['jpg', 'png', 'jpeg', 'webp','avif'];
             let pathImage = ''; // Инициализируем pathImage пустой строкой
-            const basePath = path.join(__dirname, '..', '..', `public/images/${getImage}`);
+            const basePath = path.join(__dirname, '..', '..','..', `public/images/${getImage}`);
             const extname = path.extname(getImage);
             console.log('Extname: ',extname);
             
@@ -117,7 +117,7 @@ export class SeriesInfoController{
     @Public()
     @Get(':filename/:quality')
     async getVideo(@Param('filename') filename:string,@Param('quality') quality:string,@Res() res:Response){
-        const file = path.join(__dirname,'..','..',`src/video/${filename}/${quality}/${quality}.mp4`);
+        const file = path.join(__dirname,'..','..','..',`src/video/${filename}/${quality}/${quality}.mp4`);
         if (fsSync.existsSync(file)) {
             return res.sendFile(file);
           } else {

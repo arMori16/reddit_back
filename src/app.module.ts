@@ -11,9 +11,10 @@ import { JwtService } from '@nestjs/jwt';
 import { SeriesInfoModule } from './seriesInfo/seriesInfo.module';
 import { MailModule } from './mail/mail.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
-  imports: [AuthModule,PrismaModule,SeriesInfoModule,MailModule,MailerModule.forRoot({
+  imports: [AuthModule,PrismaModule,SeriesInfoModule,MailModule,CommentsModule,MailerModule.forRoot({
     transport:'smtps://barasekson67@gmail.com:bodazopa2020@smpt.domain.com',
     defaults:{
       from:'"Mori🍃" <barasekson67@gmail.com>'
